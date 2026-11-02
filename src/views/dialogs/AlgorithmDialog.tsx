@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { Procedure } from "@gds";
 import { globalObject } from "@/engine/global-definition";
+import { globalStateObject } from "@/engine/global-state-object"; // whether the active mode lets the model be changed
 import { historyService } from "@/resources/services/history-service";
 import { procedureUtility } from "@/resources/services/procedure-utility";
 import { logger } from "@/resources/services/logger";
@@ -80,8 +81,10 @@ export default function AlgorithmDialog() {
     historyService.record(`algorithm ${dependentAlgorithmChoice}`);
   }
 
-  const run = (fn: () => Promise<void>) => () =>
+  const run = (fn: () => Promise<void>) => () => {
+    if (!globalStateObject.canEdit()) return; // an algorithm may change attribute values; e.g. ProcessSimulationMode does not allow that
     void fn().catch((err) => logger.log(`Algorithm failed: ${describeError(err)}`, "error"));
+  };
 
   return (
     <Dialog open={open} onClose={() => closeDialog("algorithm")} maxWidth="sm" fullWidth>
